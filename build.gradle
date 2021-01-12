@@ -1,0 +1,83 @@
+plugins {
+    id 'de.undercouch.download' version '4.1.1'
+    id 'maven-publish'
+    id 'java-library'
+    id 'eclipse'
+}
+
+group 'net.minecraftforge'
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(9)
+
+version = '15.1.1'
+
+repositories {
+    mavenCentral()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(9)
+    }
+}
+
+task downloadNashorn(type: Download) {
+    src "https://repo1.maven.org/maven2/org/openjdk/nashorn/nashorn-core/${project.version}/nashorn-core-${project.version}.jar"
+    dest file("build/nashorn-core-${project.version}.jar")
+    overwrite false
+}
+
+jar {
+    dependsOn downloadNashorn
+	
+    from(zipTree(file("build/nashorn-core-${project.version}.jar"))) {
+        exclude 'org/openjdk/nashorn/api/scripting/NashornScriptEngineFactory*.class'
+        exclude 'org/openjdk/nashorn/api/linker/NashornLinkerExporter*.class'
+    }
+    
+    into('META-INF/versions/15') {
+        from(zipTree(file("build/nashorn-core-${project.version}.jar"))) {
+            include 'org/openjdk/nashorn/api/scripting/NashornScriptEngineFactory*.class'
+            include 'org/openjdk/nashorn/api/linker/NashornLinkerExporter*.class'
+        }
+    }
+    
+    manifest {
+        attributes([
+            'Multi-Release': 'true', //Just set the multi-release, everything else is a copy of Nashorn's values.
+            'Ant-Version': 'Apache Ant 1.10.8',
+            'Created-By': 'Ant jar task',
+            'Archiver-Version': 'n/a',
+            'Build-Jdk': '15.0.1+9',
+            'Built-By': 'n/a'
+        ] as java.util.LinkedHashMap)
+        attributes([
+            'Implementation-Title': 'OpenJDK Nashorn',
+            'Implementation-Version': project.version
+        ] as java.util.LinkedHashMap, 'org/openjdk/nashorn/')
+    }
+}
+
+publishing {
+
+    publications {
+        mavenJava(MavenPublication) {
+            pom {
+                from components.java
+            }
+        }
+    }
+    repositories {
+        maven {
+            if (project.hasProperty('forgeMavenPassword')) {
+                credentials {
+                    username project.properties.forgeMavenUser
+                    password project.properties.forgeMavenPassword
+                }
+                url 'https://files.minecraftforge.net/maven/manage/upload'
+            } else {
+                url 'file://' + rootProject.file('repo').getAbsolutePath()
+            }
+        }
+    }
+}
