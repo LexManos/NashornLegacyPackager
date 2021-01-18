@@ -27,6 +27,10 @@ task downloadNashorn(type: Download) {
     overwrite false
 }
 
+tasks.withType(GenerateModuleMetadata) {
+    enabled = false
+}
+
 jar {
     dependsOn downloadNashorn
 	
