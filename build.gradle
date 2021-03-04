@@ -9,7 +9,8 @@ group 'net.minecraftforge'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(9)
 
-version = '15.1.1'
+def upstreamVersion = '15.1.1'
+version = upstreamVersion + '.1'
 
 repositories {
     mavenCentral()
@@ -19,11 +20,13 @@ tasks.withType(JavaCompile).configureEach {
     javaCompiler = javaToolchains.compilerFor {
         languageVersion = JavaLanguageVersion.of(9)
     }
+    sourceCompatibility('1.8')
+    targetCompatibility('1.8')
 }
 
 task downloadNashorn(type: Download) {
-    src "https://repo1.maven.org/maven2/org/openjdk/nashorn/nashorn-core/${project.version}/nashorn-core-${project.version}.jar"
-    dest file("build/nashorn-core-${project.version}.jar")
+    src "https://repo1.maven.org/maven2/org/openjdk/nashorn/nashorn-core/${upstreamVersion}/nashorn-core-${upstreamVersion}.jar"
+    dest file("build/nashorn-core-${upstreamVersion}.jar")
     overwrite false
 }
 
@@ -34,13 +37,13 @@ tasks.withType(GenerateModuleMetadata) {
 jar {
     dependsOn downloadNashorn
 	
-    from(zipTree(file("build/nashorn-core-${project.version}.jar"))) {
+    from(zipTree(file("build/nashorn-core-${upstreamVersion}.jar"))) {
         exclude 'org/openjdk/nashorn/api/scripting/NashornScriptEngineFactory*.class'
         exclude 'org/openjdk/nashorn/api/linker/NashornLinkerExporter*.class'
     }
     
     into('META-INF/versions/15') {
-        from(zipTree(file("build/nashorn-core-${project.version}.jar"))) {
+        from(zipTree(file("build/nashorn-core-${upstreamVersion}.jar"))) {
             include 'org/openjdk/nashorn/api/scripting/NashornScriptEngineFactory*.class'
             include 'org/openjdk/nashorn/api/linker/NashornLinkerExporter*.class'
         }
