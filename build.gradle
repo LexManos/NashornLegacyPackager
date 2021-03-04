@@ -10,7 +10,7 @@ group 'net.minecraftforge'
 java.toolchain.languageVersion = JavaLanguageVersion.of(9)
 
 def upstreamVersion = '15.1.1'
-version = '15.1.1.1'
+version = upstreamVersion + '.1'
 
 repositories {
     mavenCentral()
@@ -20,8 +20,8 @@ tasks.withType(JavaCompile).configureEach {
     javaCompiler = javaToolchains.compilerFor {
         languageVersion = JavaLanguageVersion.of(9)
     }
-    sourceCompatibility("1.8")
-    targetCompatibility("1.8")
+    sourceCompatibility('1.8')
+    targetCompatibility('1.8')
 }
 
 task downloadNashorn(type: Download) {
